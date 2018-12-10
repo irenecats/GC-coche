@@ -1,0 +1,13 @@
+
+precision mediump float;	// Precisión media
+
+varying vec4 v_Color;		// in: color del vertex shader
+
+uniform int code;
+
+out vec4 outputF;
+
+void main()
+{
+    		gl_FragColor = v_Color;
+}
