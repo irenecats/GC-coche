@@ -499,6 +499,7 @@ TEscena::TEscena() {
     camara = 0;
     z_buffer = 1;
     culling = 0;
+    sentido=0;
 
     scale = 1.0;
     xy_aspect = 1;
@@ -569,7 +570,23 @@ void __fastcall TEscena::InitGL()
     uMVMatrixLocation=shaderProgram->uniform(U_MVMATRIX);
     uVMatrixLocation=shaderProgram->uniform(U_VMATRIX);
     uColorLocation=shaderProgram->uniform(U_COLOR);
+
+    glUniform4fv(uLuz0PositionLocation, 1, (const GLfloat *)escena.light0_position);
+    glUniform4fv(uLuz1PositionLocation, 1, (const GLfloat *)escena.light1_position);
+    //glUniform4fv(uLuz2PositionLocation, 1, (const GLfloat *)escena.light2_position);
+    glUniform1f(uLuz0IntensityLocation, gui.light0_intensity);
+    glUniform1f(uLuz1IntensityLocation, gui.light1_intensity);
+
     uLuz0Location=shaderProgram->uniform(U_LUZ0);
+    uLuz1Location=shaderProgram->uniform(U_LUZ1);
+    //uLuz2Location=shaderProgram->uniform(U_LUZ2);
+    uLuz0PositionLocation=shaderProgram->uniform(U_POS0);
+    uLuz1PositionLocation=shaderProgram->uniform(U_POS1);
+
+    uLuz0IntensityLocation=shaderProgram->uniform(U_INT0);
+    uLuz1IntensityLocation=shaderProgram->uniform(U_INT1);
+
+    //glEnableVertexAttribArray(aTextureCoordLocation);
 
     /*
     std::cout << "a_Position Location: " << aPositionLocation << std::endl;
@@ -686,7 +703,51 @@ void __fastcall TEscena::Render()
          glm::vec3 orientacion = glm::vec3(0,1,0);
          viewMatrix = glm::lookAt(position,foco,orientacion);
     }
+
+    //modos vista
+    if(wireframe == 0){
+        glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+    }
+    else if(wireframe == 1){
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
+    else{
+        glPolygonMode(GL_FRONT_AND_BACK,GL_POINT);
+    }
+
+    if(culling==1){
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+    }
+    else{
+        glDisable(GL_CULL_FACE);
+    }
+
+    if(z_buffer==1){
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+    }
+    else{
+        glDisable(GL_DEPTH_TEST);
+    }
+
+    if(sentido==1){
+        glFrontFace(GL_CW);
+    }
+    else{
+        glFrontFace(GL_CCW);
+    }
     glUniform1i(uLuz0Location, gui.light0_enabled);
+    glUniform1i(uLuz1Location, gui.light1_enabled);
+    //glUniform1i(uLuz2Location, gui.light2_enabled);
+    glUniform4fv(uLuz0PositionLocation, 1, (const GLfloat *)escena.light0_position);
+    glUniform4fv(uLuz1PositionLocation, 1, (const GLfloat *)escena.light1_position);
+    //glUniform4fv(uLuz2PositionLocation, 1, (const GLfloat *)escena.light2_position);
+    glUniform1f(uLuz0IntensityLocation, gui.light0_intensity);
+    glUniform1f(uLuz1IntensityLocation, gui.light1_intensity);
+    //glUniform1f(uLuz2IntensityLocation, gui.light2_intensity);
+
+
     glUniformMatrix4fv(uVMatrixLocation, 1, GL_FALSE, glm::value_ptr(viewMatrix)); // Para la luz matrix view pero sin escalado!
 
     // Dibujar carretera y objetos
@@ -812,6 +873,16 @@ void __fastcall TGui::Init(int main_window) {
     glui->add_radiobutton_to_group(radioGroup, "COCHE 1");
     glui->add_radiobutton_to_group(radioGroup, "COCHE 2");
 
+    //Añade el panel de seleccion de la vista
+    new GLUI_StaticText( glui, "" );
+
+    GLUI_Panel *vista = new GLUI_Panel(glui, "Vista");
+    GLUI_RadioGroup *radioGroup2 = new GLUI_RadioGroup(vista, &avista, MODO_VISTA_ID, controlCallback);
+
+    glui->add_radiobutton_to_group(radioGroup2, "Solido");
+    glui->add_radiobutton_to_group(radioGroup2, "Alambrico");
+    glui->add_radiobutton_to_group(radioGroup2, "Puntos");
+
     //Añade el panel de seleccion de camara
     new GLUI_StaticText( glui, "" );
 
@@ -830,7 +901,7 @@ void __fastcall TGui::Init(int main_window) {
 
     /***** Control para las propiedades de escena *****/
 
-    new GLUI_Checkbox( obj_panel, "Modo Alambrico", &escena.wireframe, 1, controlCallback );
+    new GLUI_Checkbox( obj_panel, "Sentido AntiHorario", &escena.sentido, 1, controlCallback );
     glui->add_column_to_panel(obj_panel, true);
     new GLUI_Checkbox( obj_panel, "Culling", &escena.culling, 1, controlCallback );
     new GLUI_Checkbox( obj_panel, "Z Buffer", &escena.z_buffer, 1, controlCallback );
@@ -1004,6 +1075,11 @@ void __fastcall TGui::ControlCallback( int control )
           escena.camara=sel1;
           glutSetWindow(glui->get_glut_window_id());
           break;
+        }
+        case MODO_VISTA_ID:{
+            escena.wireframe = avista;
+            glutSetWindow(glui->get_glut_window_id());
+            break;
         }
   } // switch
 }

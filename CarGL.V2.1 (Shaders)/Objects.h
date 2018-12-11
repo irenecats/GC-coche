@@ -41,6 +41,7 @@
 #define CASA22_ID         1095
 #define CASA3_ID         1100
 #define CASA32_ID         1110
+
 // IDs para los callbacks de TGui
 #define LIGHT0_ENABLED_ID    200
 #define LIGHT1_ENABLED_ID    201
@@ -75,6 +76,14 @@
 #define U_VMATRIX               "u_VMatrix"
 #define U_COLOR                 "u_Color"
 #define U_LUZ0                  "u_Luz0"
+#define U_LUZ1                  "u_Luz1"
+#define U_POS0                  "u_Pos0"
+#define U_POS1                  "u_Pos1"
+#define U_INT0                  "u_Int0"
+#define U_INT1                  "u_Int1"
+
+//Forma de visualizar obj
+#define MODO_VISTA_ID           600
 
 //************************************************************** Clase TPrimtiva
 
@@ -112,6 +121,12 @@ public: // Atributos de la clase
         TPrimitiva  *cars[10];
         TPrimitiva  *objects[100];
 
+        // live variables usadas por GLUI en TGui
+        int     z_buffer;
+        int     culling;
+        int wireframe;
+        int sentido;
+
         int camara;
         // Handles de los attributes y uniforms
         int aPositionLocation;
@@ -121,6 +136,15 @@ public: // Atributos de la clase
 		int uVMatrixLocation;
 		int uColorLocation;
 		int uLuz0Location;
+		int uLuz1Location;
+		//int uLuz2Location;
+		int uLuz0PositionLocation;
+		int uLuz1PositionLocation;
+		//int uLuz2PositionLocation;
+		int uLuz0IntensityLocation;
+		int uLuz1IntensityLocation;
+		//int uLuz2IntensityLocation;
+
 
 		glm::mat4 projectionMatrix; // Almacena la matriz de proyección
         glm::mat4 viewMatrix;       // Almacena la matriz de la vista (cámara)
@@ -145,11 +169,6 @@ public: // Atributos de la clase
 
         float   xy_aspect;
         int     last_x, last_y;
-
-        // live variables usadas por GLUI en TGui
-        int     wireframe;
-        int     z_buffer;
-        int     culling;
 
         int     show_car;
         int     show_wheels;
@@ -186,8 +205,10 @@ public:
         int             window_id;
 
         // live variables usadas por GLUI
+
         int             sel;
         int             sel1;
+        int             avista;
         int             enable_panel2;
         int             light0_enabled;
         int             light1_enabled;
