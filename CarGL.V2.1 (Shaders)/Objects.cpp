@@ -760,74 +760,123 @@ void __fastcall TEscena::Render()
 }
 
 void __fastcall TEscena::renderSelection(){
-
     glm::mat4 rotateMatrix;
+
     glClearColor(0.0, 0.7, 0.9, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // Cálculo de la vista (cámara)
-    viewMatrix      = glm::mat4(1.0f);
-    rotateMatrix    = glm::make_mat4(view_rotate);
-    viewMatrix      = glm::translate(viewMatrix,glm::vec3(view_position[0], view_position[1], view_position[2]));
-    viewMatrix      = viewMatrix*rotateMatrix;
-    viewMatrix      = glm::scale(viewMatrix,glm::vec3(scale, scale, scale));
+    if(camara == 0){
+
+        viewMatrix      = glm::mat4(1.0f);
+        rotateMatrix    = glm::make_mat4(view_rotate);
+        viewMatrix      = glm::translate(viewMatrix,glm::vec3(view_position[0], view_position[1], view_position[2]));
+        viewMatrix      = viewMatrix*rotateMatrix;
+        viewMatrix      = glm::scale(viewMatrix,glm::vec3(scale, scale, scale));
+    }
+    else if(camara==1){
+            TPrimitiva *car=GetCar(escena.seleccion);
+
+         viewMatrix      = glm::mat4(1.0f);
+         glm::vec3 position = glm::vec3(car->tx,car->ty+8,car->tz-13);
+         glm::vec3 foco = glm::vec3(car->tx,car->ty,car->tz);
+         glm::vec3 orientacion = glm::vec3(0,1,0);
+         viewMatrix = glm::lookAt(position,foco,orientacion);
+
+    }
+    else{
+         TPrimitiva *car=GetCar(escena.seleccion);
+
+         viewMatrix      = glm::mat4(1.0f);
+         glm::vec3 position = glm::vec3(car->tx+10,car->ty+50,car->tz+5);
+         glm::vec3 foco = glm::vec3(car->tx+10,car->ty,car->tz);
+         glm::vec3 orientacion = glm::vec3(0,1,0);
+         viewMatrix = glm::lookAt(position,foco,orientacion);
+    }
+    /*
+    //modos vista
+    if(wireframe == 0){
+        glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+    }
+    else if(wireframe == 1){
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
+    else{
+        glPolygonMode(GL_FRONT_AND_BACK,GL_POINT);
+    }
+
+    if(culling==1){
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+    }
+    else{
+        glDisable(GL_CULL_FACE);
+    }
+
+    if(z_buffer==1){
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+    }
+    else{
+        glDisable(GL_DEPTH_TEST);
+    }
+
+    if(sentido==1){
+        glFrontFace(GL_CW);
+    }
+    else{
+        glFrontFace(GL_CCW);
+    }
 
     glUniform1i(uLuz0Location, gui.light0_enabled);
+    glUniform1i(uLuz1Location, gui.light1_enabled);
+    //glUniform1i(uLuz2Location, gui.light2_enabled);
+    glUniform4fv(uLuz0PositionLocation, 1, (const GLfloat *)escena.light0_position);
+    glUniform4fv(uLuz1PositionLocation, 1, (const GLfloat *)escena.light1_position);
+    //glUniform4fv(uLuz2PositionLocation, 1, (const GLfloat *)escena.light2_position);
+     */
+    glUniform1f(uLuz0IntensityLocation, 0.0f);
+    glUniform1f(uLuz1IntensityLocation, 0.0f);
+    //glUniform1f(uLuz2IntensityLocation, gui.light2_intensity);
+
+
     glUniformMatrix4fv(uVMatrixLocation, 1, GL_FALSE, glm::value_ptr(viewMatrix)); // Para la luz matrix view pero sin escalado!
 
     // Dibujar carretera y objetos
-    //RenderObjects(seleccion);
+    RenderObjects(seleccion);
 
     // Dibujar coches
     RenderCars(seleccion);
 
-    // Cargamos y aplicamos el shader
-    //glUseProgram(shaderProgram.getProgramIndex());
-
-    //TODO
-
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-
-    //MAAAAL
-
-	// use the selection shader
-
-/*
-	vsml->translate(-2.0f, 0.0f, -2.0f);
-	shaderP.setUniform("code", 1);
-	mySurfRev.render();
-
-	vsml->translate(4.0f, 0.0f, 0.0f);
-	shaderP.setUniform("code", 2);
-	mySurfRev.render();
-
-	vsml->translate(-4.0f, 0.0f, 4.0f);
-	shaderP.setUniform("code", 3);
-	mySurfRev.render();
-
-	vsml->translate(4.0f, 0.0f, 0.0f);
-	shaderP.setUniform("code", 4);
-	mySurfRev.render();*/
+    //glutSwapBuffers();
 }
 
 // Selecciona un objeto a través del ratón
 void __fastcall TEscena::Pick3D(int mouse_x, int mouse_y)
 {
- unsigned char res[4];
+    unsigned char res[4];
     GLint viewport[4];
 
     renderSelection();
 
     glGetIntegerv(GL_VIEWPORT, viewport);
-    glReadPixels(mouse_x, viewport[3] - mouse_y, 1,1,GL_RGBA, GL_UNSIGNED_BYTE, &res);
+    glReadPixels(mouse_x, viewport[3]  + viewport[1] - mouse_y, 1,1,GL_RGBA, GL_UNSIGNED_BYTE, &res);
     switch(res[0]) {
-        case 0: printf("Nothing Picked \n"); break;
-        case 1: printf("Picked yellow\n"); break;
-        case 2: printf("Picked red\n"); break;
-        case 3: printf("Picked green\n"); break;
-        case 4: printf("Picked blue\n"); break;
-        default:printf("Res: %d\n", res[0]);
+        case 11:
+             printf("2nd Picked \n");
+             seleccion=2;
+              break;
+
+        case 31:
+             printf("1st Picked \n");
+             seleccion=1;
+              break;
+
+        default:
+            printf("Nothing Picked \n");
+            seleccion=0;
     }
 }
 
@@ -839,7 +888,7 @@ TGui::TGui()
     sel1 = 0;
     enable_panel2 = 1;
     light0_enabled = 1;
-    light1_enabled = 1;
+    light1_enabled = 0;
     light0_intensity = 0.8;
     light1_intensity = 0.8;
     memcpy(light0_position, light0_position_c, 4*sizeof(float));
@@ -1133,6 +1182,6 @@ void __fastcall TGui::Motion(int x, int y )
 
 void __fastcall TGui::Mouse(int button, int button_state, int x, int y )
 {
-    escena.Pick3D(x, y);
+    if(button_state == 0) escena.Pick3D(x, y);
 }
 

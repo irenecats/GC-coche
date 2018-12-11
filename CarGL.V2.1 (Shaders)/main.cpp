@@ -100,9 +100,9 @@ static void SpecialKey(int key, int x, int y)
     {
         case GLUT_KEY_UP:   // El coche avanza
             car->rr += 8;
-            car->tz += cos((car->ry * 3.141592654) / 180);
-            car->tx += sin((car->ry * 3.141592654) / 180);
-            car->ry += 0.05 * car->rry;
+            car->tz +=  cos((car->ry * 3.141592654) / 180);
+            car->tx +=  sin((car->ry * 3.141592654) / 180);
+            car->ry += 0.2 * car->rry;
             break;
 
         case GLUT_KEY_LEFT:   // El coche gira a la izquierda
@@ -124,8 +124,8 @@ static void SpecialKey(int key, int x, int y)
             // El coche retrocede
             car->rr -= 8;
             car->tz -= cos((car->ry * 3.141592654) / 180);
-            car->tx -= sin((car->ry * 3.141592654) / 180);
-            car->ry -= 0.05 * car->rry;
+            car->tx -=  sin((car->ry * 3.141592654) / 180);
+            car->ry -= 0.2 * car->rry;
 
             break;
     }
